@@ -15,7 +15,7 @@ from rest_framework import status
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        data    = super().validate(attrs)
+        data = super().validate(attrs)
 
         serializer = UserSerializerWithToken(self.user).data
         for k, v in serializer.items():
@@ -42,6 +42,27 @@ def registerUser(request):
     except:
         message = {'detail':'Email already exists in our database'}
         return Response(message,status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def updateUserProfile(request):
+    user = request.user
+    serializer = UserSerializerWithToken(user, many=False)
+
+    data = request.data
+    user.first_name = data['name']
+    user.username = data['email']
+    user.email = data['email']
+
+    if data['password'] != '':
+        user.password = make_password(data['password'])
+
+    user.save()
+
+    
+
+    return Response(serializer.data)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
